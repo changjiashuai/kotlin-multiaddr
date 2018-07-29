@@ -15,4 +15,21 @@ class ProtocolTest {
         val ps = Protocol.protocolsWithString(address)
         println(ps)
     }
+
+    @Test
+    fun test1() {
+        val code = 479
+        val varint = ByteArray((32 - Integer.numberOfLeadingZeros(code) + 6) / 7)
+        println("varint=$varint")
+        varint.forEachIndexed { index, byte ->
+            println("$index=$byte")
+        }
+    }
+
+    @Test
+    fun stringToByteArray() {
+        val address = "/ip4/127.0.0.1/udp/1234"
+        println("s=${stringToBytes(address).contentToString()}")
+        val b = ByteArray(2)
+    }
 }

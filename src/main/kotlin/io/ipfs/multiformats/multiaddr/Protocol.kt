@@ -1,5 +1,7 @@
 package io.ipfs.multiformats.multiaddr
 
+import io.ipfs.multiformats.multihash.VarInt
+
 /**
  * changjiashuai@gmail.com.
  *
@@ -7,35 +9,62 @@ package io.ipfs.multiformats.multiaddr
  */
 
 const val LENGTH_PREFIXED = -1 //a size of -1 indicates a length-prefixed variable size
+val IPV4_TRANSCODER = IPv4Transcoder()
+val PORT_TRANSCODER = PortTranscoder()
+val IPV6_TRANSCODER = IPv6Transcoder()
+val UNIX_TRANSCODER = UnixTranscoder()
+val P2P_TRANSCODER = P2PTranscoder()
+val ONION_TRANSCODER = OnionTranscoder()
 
-enum class Protocol(val code: Int, val size: Int, val named: String) {
-    IP4(4, 32, "ip4"),
-    TCP(6, 16, "tcp"),
-    UDP(17, 16, "udp"),
-    DCCP(33, 16, "dccp"),
-    IP6(41, 128, "ip6"),
-    DNS(53, LENGTH_PREFIXED, "dns"),
-    DNS4(54, LENGTH_PREFIXED, "dns4"),
-    DNS6(55, LENGTH_PREFIXED, "	dns6"),
-    DNSADDR(56, LENGTH_PREFIXED, "dnsaddr"),
-    SCTP(132, 16, "sctp"),
-    UDT(301, 0, "udt"),
-    UTP(302, 0, "utp"),
-    UNIX(400, LENGTH_PREFIXED, "	unix"),
-    P2P(421, LENGTH_PREFIXED, "p2p"),
-    IPFS(421, LENGTH_PREFIXED, "ipfs"),
-    ONION(444, 96, "onion"),
-    QUIC(460, 0, "quic"),
-    HTTP(480, 0, "http"),
-    HTTPS(443, 0, "https"),
-    WS(477, 0, "ws"),
-    WSS(478, 0, "wss"),
-    P2P_WEBSOCKET_STAR(479, 0, "p2p-websocket-star"),
-    P2P_WEBRTC_STAR(275, 0, "p2p-webrtc-star"),
-    P2P_WEBRTC_DIRECT(276, 0, "p2p-webrtc-direct"),
-    P2P_CIRCUIT(290, 0, "p2p-circuit");
+/**
+ * @param size a size of -1 indicates a length-prefixed variable size
+ * @param path indicates a path protocol (eg: unix, http)
+ */
+enum class Protocol(val code: Int, val size: Int, val named: String, val path: Boolean, val transcoder: Transcoder? = null) {
+    IP4(4, 32, "ip4", false, IPV4_TRANSCODER),
+    TCP(6, 16, "tcp", false, PORT_TRANSCODER),
+    UDP(17, 16, "udp", false, PORT_TRANSCODER),
+    DCCP(33, 16, "dccp", false, PORT_TRANSCODER),
+    IP6(41, 128, "ip6", false, IPV6_TRANSCODER),
+    DNS(53, LENGTH_PREFIXED, "dns", false),
+    DNS4(54, LENGTH_PREFIXED, "dns4", false),
+    DNS6(55, LENGTH_PREFIXED, "dns6", false),
+    DNSADDR(56, LENGTH_PREFIXED, "dnsaddr", false),
+    SCTP(132, 16, "sctp", false, PORT_TRANSCODER),
+    UDT(301, 0, "udt", false),
+    UTP(302, 0, "utp", false),
+    UNIX(400, LENGTH_PREFIXED, "unix", true, UNIX_TRANSCODER),
+    P2P(421, LENGTH_PREFIXED, "p2p", false, P2P_TRANSCODER),
+    IPFS(421, LENGTH_PREFIXED, "ipfs", false, P2P_TRANSCODER),
+    ONION(444, 96, "onion", false, ONION_TRANSCODER),
+    QUIC(460, 0, "quic", false),
+    HTTP(480, 0, "http", false),
+    HTTPS(443, 0, "https", false),
+    WS(477, 0, "ws", false),
+    WSS(478, 0, "wss", false),
+    P2P_WEBSOCKET_STAR(479, 0, "p2p-websocket-star", false),
+    P2P_WEBRTC_STAR(275, 0, "p2p-webrtc-star", false),
+    P2P_WEBRTC_DIRECT(276, 0, "p2p-webrtc-direct", false),
+    P2P_CIRCUIT(290, 0, "p2p-circuit", false);
 
     companion object {
+
+        /**
+         * @param buf varint-encoded ByteArray
+         * @return converts a varint-encoded ByteArray to an integer protocol code
+         *         and the number of bytes read.
+         */
+        fun varintToCode(buf: ByteArray): Pair<Long, Int> {
+            return VarInt.decodeVarInt(buf)
+        }
+
+        /**
+         * @param code func code
+         * @return converts an integer to a varint-encoded ByteArray
+         */
+        fun codeToVarint(code: Int): ByteArray {
+            return VarInt.encodeVarint(code)
+        }
 
         fun protocolWithCode(code: Int): Protocol? {
             for (p in Protocol.values()) {
