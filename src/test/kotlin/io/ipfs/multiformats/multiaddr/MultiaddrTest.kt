@@ -102,6 +102,19 @@ class MultiaddrTest {
     }
 
     @Test
+    fun valueForProtocol(){
+         val ma = Multiaddr("/ip4/127.0.0.1/utp/tcp/5555/udp/1234/utp/ipfs/QmbHVEEepCi7rn7VL7Exxpd2Ci9NNB6ifvqwhsrbRMgQFP/unix/a/b/c/d/e")
+        assertEquals("127.0.0.1", ma.valueForProtocol(Protocol.IP4.code))
+        assertEquals("", ma.valueForProtocol(Protocol.UTP.code))
+        assertEquals("5555", ma.valueForProtocol(Protocol.TCP.code))
+        assertEquals("1234", ma.valueForProtocol(Protocol.UDP.code))
+        assertEquals("", ma.valueForProtocol(Protocol.UTP.code))
+//        assertEquals("a/b/c/d/e", ma.valueForProtocol(Protocol.UNIX.code))
+        assertEquals("QmbHVEEepCi7rn7VL7Exxpd2Ci9NNB6ifvqwhsrbRMgQFP", ma.valueForProtocol(Protocol.IPFS.code))
+        assertEquals("QmbHVEEepCi7rn7VL7Exxpd2Ci9NNB6ifvqwhsrbRMgQFP", ma.valueForProtocol(Protocol.P2P.code))
+    }
+
+    @Test
     fun encapsulate() {
         val md1 = Multiaddr("/ip4/127.0.0.1/udp/1234")
         val md2 = Multiaddr("/udp/5678")
@@ -115,6 +128,8 @@ class MultiaddrTest {
     fun decapsulate() {
         val md1 = Multiaddr("/ip4/127.0.0.1/udp/5678/ip4/127.0.0.1/udp/1234/udp/1234")
         val md2 = Multiaddr("/ip4/127.0.0.1")
+        println("md1.toString=${md1.toString()}")
+        println("md2.toString=${md2.toString()}")
         val str = md1.decapsulate(md2).toString()
         println("str=$str")
         assertEquals("/ip4/127.0.0.1/udp/5678/udp/1234/udp/1234", str)

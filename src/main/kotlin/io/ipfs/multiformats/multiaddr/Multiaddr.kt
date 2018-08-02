@@ -56,6 +56,8 @@ class Multiaddr {
             // if multiaddr not contained, return a copy.
             return Multiaddr(multiaddr.bytes)
         }
+        println("decapsulate s1=$s1")
+        println("decapsulate s2=$s2")
         return Multiaddr(s1.substring(0, i) + s1.substring(i + s2.length))
     }
 
@@ -72,12 +74,20 @@ class Multiaddr {
      */
     fun valueForProtocol(code: Int): String {
         for (md in split()) {
-            val p = md.getProtocols()[0]
-            if (p.code == code) {
-                if (p.size == 0) {
-                    return ""
+            //
+            val c = Protocol.varintToCode(md.bytes)
+            val p = Protocol.protocolWithCode(c.first.toInt())
+            if (p != null) {
+                println("p.code=${p.code}, c=$c, code=$code")
+                if (p.code == code) {
+                    if (p.size == 0) {
+                        return ""
+                    }
+                    if (p.path){
+                        return md.toString().trim('/').substringAfter('/')
+                    }
+                    return md.toString().trim('/').split('/')[1]
                 }
-                return md.toString().split("/").take(3)[2]
             }
         }
         throw IllegalStateException("protocol not found in multiaddr")
@@ -86,7 +96,10 @@ class Multiaddr {
     private fun split(): ArrayList<Multiaddr> {
         val bsList = bytesSplit(bytes)
         val mds = arrayListOf<Multiaddr>()
-        bsList.forEach { mds.add(Multiaddr(it)) }
+        bsList.forEach {
+            println("split code:value=${it.contentToString()}")
+            mds.add(Multiaddr(it))
+        }
         return mds
     }
 
