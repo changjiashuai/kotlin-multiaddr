@@ -47,6 +47,11 @@ fun bytesToLEInt(bytes: ByteArray): Int {
     return Integer.reverseBytes(bytesToBEInt(bytes))
 }
 
+fun bytesToBEInt16(bytes: ByteArray): Int {
+    return ((uint8(bytes[0]) shl 8)
+            + uint8(bytes[1]))
+}
+
 fun getUint8(buffer: ByteBuffer, position: Int): Int {
     return uint8(buffer.get(position))
 }

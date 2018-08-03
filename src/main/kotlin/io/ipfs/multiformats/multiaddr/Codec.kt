@@ -25,6 +25,7 @@ fun sizeForAddr(protocol: Protocol, bytes: ByteArray): Pair<Int, Int> {
 }
 
 /**
+ * @param bytes Multiaddr bytes
  * @return ArrayList<ByteArray> ByteArray:code+value?
  */
 fun bytesSplit(bytes: ByteArray): ArrayList<ByteArray> {
@@ -32,14 +33,10 @@ fun bytesSplit(bytes: ByteArray): ArrayList<ByteArray> {
     var b = bytes
     var length = 0
     while (b.isNotEmpty()) {
-        println("bytesSplit b.size=${b.size}")
-        println("bytesSplit b=${b.contentToString()}")
         val result = Protocol.varintToCode(b)
         val code = result.first.toInt()
         val number = result.second / 7
         val protocol = Protocol.protocolWithCode(code)
-        println("bytesSplit code=$code")
-        println("bytesSplit protocol=$protocol")
         if (protocol != null) {
             if (protocol.code == 0) {
                 throw IllegalStateException("no protocol with code $code")
@@ -50,40 +47,67 @@ fun bytesSplit(bytes: ByteArray): ArrayList<ByteArray> {
                 b = b.sliceArray(IntRange(number, b.size - 1))
                 continue
             }
-            println("bytesSplit b.size remove code after=${b.size}")
+            //addr value
+            val result2 = sizeForAddr(protocol, b.sliceArray(IntRange(number, b.size - 1)))
+            val skip = result2.first / 7
+            val size = result2.second
+            length = number + skip + size
+            val codeValue = b.sliceArray(IntRange(0, length - 1))
+            ret.add(codeValue)
+        }
+        //rest bytes
+        b = b.sliceArray(IntRange(length, b.size - 1))
+    }
+    return ret
+}
+
+/**
+ * @param bytes Multiaddr bytes
+ * @return ArrayList<Protocol> Multiaddr includes protocols
+ */
+fun bytesSplitForProtocol(bytes: ByteArray): ArrayList<Protocol> {
+    val ret = arrayListOf<Protocol>()
+    var b = bytes
+    var length = 0
+    while (b.isNotEmpty()) {
+        val result = Protocol.varintToCode(b)
+        val code = result.first.toInt()
+        val number = result.second / 7
+        val protocol = Protocol.protocolWithCode(code)
+        if (protocol != null) {
+            ret.add(protocol)
+            if (protocol.code == 0) {
+                throw IllegalStateException("no protocol with code $code")
+            }
+            if (protocol.size == 0) {
+                // just only code no value
+                b = b.sliceArray(IntRange(number, b.size - 1))
+                continue
+            }
             //addr value
             val result2 = sizeForAddr(protocol, b.sliceArray(IntRange(number, b.size - 1)))
             val skip = result2.first / 7
             val size = result2.second
 
             length = number + skip + size
-
-            println("bytesSplit skip=$skip, size=$size")
-            println("bytesSplit length=$length")
-            println("bytesSplit b.size=${b.size}")
-            val codeValue = b.sliceArray(IntRange(0, length - 1))
-            ret.add(codeValue)
-            //rest bytes
         }
         b = b.sliceArray(IntRange(length, b.size - 1))
     }
-    println("bytesSplit end b=${b.contentToString()}")
-    println("-----------------------------------")
     return ret
 }
 
-//name/value
+/**
+ * @param bytes Mutltiaddr bytes  (<protocolCode uvarint><value []byte>)+
+ * @return String Multiaddr string (/<protocolName string>/<value string>)+
+ */
 fun bytesToString(bytes: ByteArray): String {
     var s = ""
     var b = bytes
-    var length = 0
-    println("bytesToString origin b=${b.contentToString()}")
     while (b.isNotEmpty()) {
         val result = Protocol.varintToCode(b)
         val code = result.first.toInt()
         val number = result.second / 7
         b = b.sliceArray(IntRange(number, b.size - 1))
-        println("bytesToString remove code b=${b.contentToString()}")
         val protocol = Protocol.protocolWithCode(code)
         if (protocol != null) {
             if (protocol.code == 0) {
@@ -98,11 +122,6 @@ fun bytesToString(bytes: ByteArray): String {
             val result2 = sizeForAddr(protocol, b)
             val skip = result2.first / 7
             val size = result2.second
-            println("bytesToString value size=$size, skip=$skip")
-
-//            length = number + skip + size
-
-            println("bytesToString remove value b.size=${b.size}, addr=${b.contentToString()}")
             if (b.size < size || size < 0) {
                 throw IllegalStateException("invalid value for size")
             }
@@ -123,10 +142,13 @@ fun bytesToString(bytes: ByteArray): String {
             b = b.sliceArray(IntRange(size, b.size - 1))
         }
     }
-    println("bytesToString--------------------------------")
     return s
 }
 
+/**
+ * @param str Multiaddr string (/<protocolName string>/<value string>)+
+ * @return ByteArray Multiaddr bytes (<protocolCode uvarint><value []byte>)+
+ */
 fun stringToBytes(str: String): ByteArray {
     if (!str.startsWith("/")) {
         throw IllegalArgumentException("invalid multiaddr, must begin with /")
@@ -180,8 +202,8 @@ fun isValidBytes(buf: ByteArray): Boolean {
     while (b.isNotEmpty()) {
         val result = Protocol.varintToCode(b)
         val code = result.first.toInt()
-        val number = result.second
-        b = b.sliceArray(IntRange(1, b.size - 1))
+        val number = result.second / 7
+        b = b.sliceArray(IntRange(number, b.size - 1))
         val protocol = Protocol.protocolWithCode(code)
         if (protocol != null) {
             if (protocol.code == 0) {
@@ -191,15 +213,18 @@ fun isValidBytes(buf: ByteArray): Boolean {
                 continue
             }
             val result2 = sizeForAddr(protocol, b)
-            val skip = result2.first
+            val skip = result2.first / 7
             val size = result2.second
-            b = b.sliceArray(IntRange(skip, b.size - 1))
             if (b.size < size || size < 0) {
                 throw IllegalStateException("invalid value for size")
             }
             protocol.transcoder?.let {
-                b = b.sliceArray(IntRange(0, size - 1))
-                if (!it.isValidBytes(b)) {
+                //addr bytes
+                if (protocol.size == LENGTH_PREFIXED) {
+                    //remove addr code
+                    b = b.sliceArray(IntRange(skip, b.size - 1))
+                }
+                if (!it.isValidBytes(b.sliceArray(IntRange(0, size - 1)))) {
                     throw IllegalStateException("invalid bytes for transcoder")
                 }
             }

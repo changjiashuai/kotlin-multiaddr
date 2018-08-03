@@ -12,7 +12,6 @@ class P2PTranscoder : Transcoder {
     override fun stringToBytes(str: String): ByteArray {
         // the address is a varint prefixed multihash string representation
         val bytes = Multihash.fromBase58String(str).raw
-        println("P2PTranscoder bytes=${bytes.contentToString()}")
         if (isValidBytes(bytes)) {
             return bytes
         } else {
@@ -21,12 +20,11 @@ class P2PTranscoder : Transcoder {
     }
 
     override fun bytesToString(bytes: ByteArray): String {
-//        if (isValidBytes(bytes)) {
-        println("p2p bytes=${bytes.contentToString()}")
+        if (isValidBytes(bytes)) {
             return Multihash.cast(bytes).toBase58String()
-//        } else {
-//            throw IllegalArgumentException("multihash length inconsistent")
-//        }
+        } else {
+            throw IllegalArgumentException("multihash length inconsistent")
+        }
     }
 
     override fun isValidBytes(bytes: ByteArray): Boolean {

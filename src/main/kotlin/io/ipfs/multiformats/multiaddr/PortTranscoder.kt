@@ -26,7 +26,7 @@ class PortTranscoder : Transcoder {
     }
 
     override fun isValidBytes(bytes: ByteArray): Boolean {
-        return isValidRange(String(bytes))
+        return isValidRange(uint16(bytes[0], bytes[1]).toString())
     }
 
     private fun isValidRange(str: String): Boolean {
