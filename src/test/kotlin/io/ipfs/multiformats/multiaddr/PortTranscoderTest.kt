@@ -1,5 +1,7 @@
 package io.ipfs.multiformats.multiaddr
 
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -9,24 +11,48 @@ import org.junit.Test
  */
 class PortTranscoderTest {
 
-    private val str = "65537"
-    private val bytes = byteArrayOf(49, 50, 51, 52, 53)
-    private val outRangeBytes = byteArrayOf(54, 53, 53, 51, 55) //65537
-
     @Test
     fun stringToBytes() {
-        val bytes = PortTranscoder().stringToBytes(str)
-        println("bytes=${bytes.contentToString()}")
+        val s1 = "0"
+        val s2 = "65535"
+        val b1 = PortTranscoder().stringToBytes(s1)
+        val b2 = PortTranscoder().stringToBytes(s2)
+        assertEquals("[0, 0]", b1.contentToString())
+        assertEquals("[-1, -1]", b2.contentToString())
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun badString() {
+        val s1 = "-1"
+        val s2 = "65536"
+        val b1 = PortTranscoder().stringToBytes(s1)
+        val b2 = PortTranscoder().stringToBytes(s2)
+        println(b1.contentToString())
+        println(b2.contentToString())
+
+        //[-1, -1]
+        //[0, 0]
     }
 
     @Test
     fun bytesToString() {
-        val str = PortTranscoder().bytesToString(bytes)
-        println("str=$str")
+        val b1 = byteArrayOf(0, 0)
+        val b2 = byteArrayOf(-1, -1)
+        val s1 = PortTranscoder().bytesToString(b1)
+        val s2 = PortTranscoder().bytesToString(b2)
+        assertEquals("0", s1)
+        assertEquals("65535", s2)
+    }
+
+    @Test
+    fun badBytes(){
+
     }
 
     @Test
     fun validateBytes() {
-        println("===" + PortTranscoder().isValidBytes(outRangeBytes))
+        val b1 = byteArrayOf(127, 127)
+        assertTrue(PortTranscoder().isValidBytes(b1))
+//        assertFalse(PortTranscoder().isValidBytes(outRangeBytes))
     }
 }

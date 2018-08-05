@@ -119,3 +119,6 @@ Temporary Items
 .gradle
 .idea
 build
+gradle.properties
+local.properties
+bintray.gradle

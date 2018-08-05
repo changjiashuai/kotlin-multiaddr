@@ -110,7 +110,7 @@ class MultiaddrTest {
         assertEquals("tcp", ps[2].named)
         assertEquals("udp", ps[3].named)
         assertEquals("utp", ps[4].named)
-        assertEquals("p2p", ps[5].named)
+        assertEquals("ipfs", ps[5].named)
         assertEquals("unix", ps[6].named)
     }
 
@@ -192,5 +192,37 @@ class MultiaddrTest {
         val m1 = Multiaddr("/ip4/127.0.0.1/udp/1234")
         val m2 = Multiaddr("/ip4/127.0.0.1/tcp/1234")
         assertEquals("/ip4/127.0.0.1/udp/1234/ip4/127.0.0.1/tcp/1234", Multiaddr.join(m1, m2).toString())
+    }
+
+    @Test
+    fun split() {
+        val md = Multiaddr("/ip4/127.0.0.1/udp/1234/ip4/127.0.0.1/tcp/1234")
+        val mds = md.split()
+        assertEquals("/ip4/127.0.0.1", mds[0].toString())
+        assertEquals("/udp/1234", mds[1].toString())
+        assertEquals("/ip4/127.0.0.1", mds[2].toString())
+        assertEquals("/tcp/1234", mds[3].toString())
+    }
+
+    @Test
+    fun toBytes() {
+        val md = Multiaddr("/ip4/127.0.0.1/udp/1234")
+//        val b = byteArrayOf(0x4, 0x7f, 0x0, 0x0, 0x1, 0x91, 0x2, 0x4, 0xd2)
+        println(md.toBytes().contentToString())
+    }
+
+    @Test
+    fun testToString() {
+        val strs = arrayListOf(
+                "/unix/a/b/c/d",
+                "/ip4/127.0.0.1/tcp/123",
+                "/ip4/127.0.0.1/udp/123",
+                "/ip4/127.0.0.1/udp/123/ip6/0:0:0:0:0:0:0:0",
+                "/ipfs/QmbHVEEepCi7rn7VL7Exxpd2Ci9NNB6ifvqwhsrbRMgQFP",
+                "/ipfs/QmbHVEEepCi7rn7VL7Exxpd2Ci9NNB6ifvqwhsrbRMgQFP/unix/a/b/c")
+        strs.forEach {
+            val md = Multiaddr(it)
+            assertEquals(it, md.toString())
+        }
     }
 }

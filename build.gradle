@@ -9,9 +9,9 @@ buildscript {
     }
 }
 
-group 'io.ipfs.multiformats'
-version '1.0-SNAPSHOT'
-
+plugins {
+    id "com.jfrog.bintray" version "1.8.4"
+}
 apply plugin: 'java'
 apply plugin: 'kotlin'
 
@@ -36,3 +36,5 @@ compileKotlin {
 compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
+
+apply from: "bintray.gradle"

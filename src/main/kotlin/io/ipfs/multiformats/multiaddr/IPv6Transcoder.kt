@@ -18,7 +18,7 @@ class IPv6Transcoder : Transcoder {
 
     override fun bytesToString(bytes: ByteArray): String {
         if (isValidBytes(bytes)) {
-            return Inet6Address.getByAddress(bytes).hostAddress
+            return Inet6Address.getByAddress(bytes).hostName
         }
         throw IllegalArgumentException("invalid ipv6 bytes")
     }

@@ -1,8 +1,5 @@
 package io.ipfs.multiformats.multiaddr
 
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-
 /**
  * changjiashuai@gmail.com.
  *
@@ -19,17 +16,18 @@ class PortTranscoder : Transcoder {
     }
 
     override fun bytesToString(bytes: ByteArray): String {
-        val buffer = ByteBuffer.allocate(bytes.size)
-        buffer.order(ByteOrder.BIG_ENDIAN)
-        buffer.put(bytes)
-        return buffer.getShort(0).toString()
+        return uint16(bytes[0], bytes[1]).toString()
     }
 
     override fun isValidBytes(bytes: ByteArray): Boolean {
-        return isValidRange(uint16(bytes[0], bytes[1]).toString())
+        return isValidRange(bytesToString(bytes))
     }
 
     private fun isValidRange(str: String): Boolean {
-        return str.toInt() in 0..65535 //[0,65535]
+        return try {
+            str.toInt() in 0..65535 //[0,65535]
+        } catch (e: Exception) {
+            false
+        }
     }
 }

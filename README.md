@@ -17,7 +17,6 @@ Multiaddr is a standard way to represent addresses that:
 
 ## Install
 
-Add the relevant dependency to your project:(WIP)
 
 #### Maven
 
@@ -25,7 +24,7 @@ Add the relevant dependency to your project:(WIP)
 <dependency>
   <groupId>io.ipfs.multiformats</groupId>
   <artifactId>kotlin-multiaddr</artifactId>
-  <version>x.y.z</version>
+  <version>1.0.0</version>
   <type>pom</type>
 </dependency>
 ```
@@ -33,7 +32,7 @@ Add the relevant dependency to your project:(WIP)
 #### Gradle
 
 ```gradle
-compile 'io.ipfs.multiformats:kotlin-multiaddr:x.y.z'
+compile 'io.ipfs.multiformats:kotlin-multiaddr:1.0.0'
 ```
 
 
@@ -41,7 +40,15 @@ compile 'io.ipfs.multiformats:kotlin-multiaddr:x.y.z'
 
 
 ```kotlin
-......
+//encapsulate
+val md1 = Multiaddr("/ip4/127.0.0.1/udp/1234")
+val md2 = Multiaddr("/udp/5678")
+val str = md1.encapsulate(md2).toString()
+
+//decapsulate
+val md1 = Multiaddr("/ip4/127.0.0.1/udp/5678/ip4/127.0.0.1/udp/1234/udp/1234")
+val md2 = Multiaddr("/ip4/127.0.0.1")
+val str = md1.decapsulate(md2).toString()
 ```
 
 

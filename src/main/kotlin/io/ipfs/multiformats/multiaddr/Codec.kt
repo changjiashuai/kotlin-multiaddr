@@ -225,7 +225,7 @@ fun isValidBytes(buf: ByteArray): Boolean {
                     b = b.sliceArray(IntRange(skip, b.size - 1))
                 }
                 if (!it.isValidBytes(b.sliceArray(IntRange(0, size - 1)))) {
-                    throw IllegalStateException("invalid bytes for transcoder")
+                    throw IllegalStateException("$protocol invalid bytes for transcoder")
                 }
             }
             b = b.sliceArray(IntRange(size, b.size - 1))
