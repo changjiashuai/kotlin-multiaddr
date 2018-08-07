@@ -93,7 +93,11 @@ enum class Protocol(val code: Int, val size: Int, val named: String, val path: B
             val protocols = ArrayList<Protocol>(sp.size)
             sp.forEach { named ->
                 val p = protocolWithName(named)
-                p?.let { protocols.add(p) }
+                if (p == null) {
+                    throw IllegalArgumentException("unsupported protocol $named")
+                } else {
+                    protocols.add(p)
+                }
             }
             return protocols
         }
