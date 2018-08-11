@@ -141,7 +141,7 @@ class MultiaddrTest {
         val md1 = Multiaddr("/ip4/127.0.0.1/udp/5678/ip4/127.0.0.1/udp/1234/udp/1234")
         val md2 = Multiaddr("/ip4/127.0.0.1")
         val str = md1.decapsulate(md2).toString()
-        assertEquals("/ip4/127.0.0.1/udp/5678/udp/1234/udp/1234", str)
+        assertEquals("/ip4/127.0.0.1/udp/5678", str)
     }
 
     private fun testString(s: String, hex: String): Boolean {

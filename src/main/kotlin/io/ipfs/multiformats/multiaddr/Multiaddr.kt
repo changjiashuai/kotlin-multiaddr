@@ -56,7 +56,7 @@ class Multiaddr {
             // if multiaddr not contained, return a copy.
             return Multiaddr(multiaddr.bytes)
         }
-        return Multiaddr(s1.substring(0, i) + s1.substring(i + s2.length))
+        return Multiaddr(s1.substring(0, i))
     }
 
     /**
